@@ -1,0 +1,37 @@
+#Initiating Docker master node in swarm
+#Ports that need to be open : 2377, 4789, 7946
+docker swarm init —listen-addr <IP of Master>:2377
+#Now check how many nodes are there in your swarm cluster
+docker node ls
+#It should show just one node and this should show manager status as Leader.
+#Use following command to add a worker
+docker swarm join --token SWMTKN-1-063v3qfd3eujehuq8frrxtmlbyy6jvnng4i3fg42qegkgdxdpg-52qsljeiqatfh1l9wbl6ur9gg 172.31.5.183:2377
+#The token value is something that you will get while initiating manager swarm node
+#Now installing a service in docker so the deployment can be load balanced
+docker service create alpine ping
+docker service ls
+docker service inspect <serviceName>
+
+docker service create --publish 80:80 sixeyed/docker-swarm-walkthrough
+docker service inspect <serviceName>
+
+docker service create --name vote -p 8080:80 instavote/vote
+docker service scale vote=6
+docker service update vote --image instavote/vote:movies
+docker service update vote --image instavote/vote:indent --update-parallelism 2 --update-delay 10s
+
+
+
+docker service create \
+  --name=viz \
+  --publish=8181:8080/tcp \
+  --constraint=node.role==manager \
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  dockersamples/visualizer
+
+  docker service create \
+  --name=viz \
+  --publish=8181:8080/tcp \
+  --constraint=node.role==manager \
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  sangirash/visualizer
